@@ -34,7 +34,7 @@ public class ConfirmationTokenService {
         mailMessage.setTo(user.getEmail());
         mailMessage.setSubject("Complete Registration!");
         mailMessage.setText("To confirm your account, please click here : "
-                + "http://localhost:8000/api/v1/user/confirmemail?token=" + confirmationToken.getConfirmationToken());
+                + "https://newmoodle.onrender.com/api/v1/user/confirmemail?token=" + confirmationToken.getConfirmationToken());
         emailService.sendEmail(mailMessage);
         return ResponseEntity.ok("confirmation token sent");
     }
