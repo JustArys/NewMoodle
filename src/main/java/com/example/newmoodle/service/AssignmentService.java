@@ -24,7 +24,7 @@ public class AssignmentService {
     private final FileService fileService;
 
     public Assignment createAssignment(AssignmentDto assignment, User teacher, Long sectionId) throws IOException {
-        try{String file = fileService.saveFile(assignment.getFile());
+        try{String file = fileService.uploadFile(assignment.getFile());
         var assignment1 = Assignment.builder()
                 .title(assignment.getTitle())
                 .dueDate(assignment.getDueDate())

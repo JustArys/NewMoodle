@@ -84,6 +84,11 @@
         </dependency>
 
         <dependency>
+            <groupId>me.paulschwarz</groupId>
+            <artifactId>spring-dotenv</artifactId>
+            <version>4.0.0</version>
+        </dependency>
+        <dependency>
             <groupId>org.docx4j</groupId>
             <artifactId>docx4j-core</artifactId>
             <version>11.4.9</version>
@@ -110,6 +115,13 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>software.amazon.awssdk</groupId>
+            <artifactId>s3</artifactId>
+            <version>2.31.21</version>
+            <scope>compile</scope>
         </dependency>
 
         <dependency>

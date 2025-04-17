@@ -35,13 +35,11 @@ public class FeedbackService {
         Submission submission = submissionService.getSubmissionById(submissionId);
         Feedback feedback = null;
         String chat = getFeedbackFromOpenAI(fileService.extractText(submission.getFileUrl()), language);
-        if(chat != null) {
-            feedback = Feedback.builder()
-                    .submission(submission)
-                    .teacher(teacher)
-                    .aiGenerated(chat)
-                    .build();
-        }
+        feedback = Feedback.builder()
+                .submission(submission)
+                .teacher(teacher)
+                .aiGenerated(chat)
+                .build();
 
         submission.setStatus(SubmissionStatus.REVIEWED);
         submissionService.updateSubmission(submission);
@@ -59,8 +57,8 @@ public class FeedbackService {
                 .builder()
                 .model("gpt-4o-mini") // Or gpt-3.5-turbo, as appropriate
                 .messages(messages)
-                .maxTokens(1000) // Adjust as needed
-                .temperature(0.7) // Adjust for creativity/focus
+                .maxTokens(1000)
+                .temperature(0.7)
                 .build();
 
         try {

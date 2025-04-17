@@ -24,7 +24,7 @@ public class SubmissionService {
             throw new IllegalArgumentException("User is not a Student");
         }
         Assignment assignment = assignmentService.getAssignmentById(assignmentId);
-        String filename = fileService.saveFile(file);
+        String filename = fileService.uploadFile(file);
         var submission = Submission.builder()
                 .assignment(assignment)
                 .fileUrl(filename)
