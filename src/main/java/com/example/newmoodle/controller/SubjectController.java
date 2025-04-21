@@ -26,8 +26,4 @@ public class SubjectController {
         return ResponseEntity.ok(subjectServer.getSubjectById(id));
     }
 
-    @PostMapping("/{id}/section")
-    public ResponseEntity<?> setSection(@PathVariable Long id, @RequestParam Long sectionId) {
-        return ResponseEntity.ok(subjectServer.setSection(id, sectionId));
-    }
 }

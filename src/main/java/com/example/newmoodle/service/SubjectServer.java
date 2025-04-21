@@ -26,15 +26,7 @@ public class SubjectServer {
         return subjectRepository.findAll();
     }
 
-    public Subject setSection(Long id, Long sectionId) {
-        Subject subject = getSubjectById(id);
-        Section section = sectionService.getSectionById(sectionId);
-        if (subject.getSection() == null) {
-            subject.setSection(new ArrayList<>());
-        }
-        subject.getSection().add(section);
-        return subjectRepository.save(subject);
-    }
+
 
     public Subject getSubjectById(Long id) {
         return subjectRepository.findById(id).orElseThrow(()

@@ -30,6 +30,11 @@ public class Section {
     @ManyToOne
     private User teacher;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id")
+    @JsonIgnore
+    private Subject subject;
+
     @ManyToMany
     @JoinTable(name = "section_students",
             joinColumns = @JoinColumn(name = "section_id"),

@@ -29,7 +29,7 @@ public class AssignmentController {
     @PostMapping(value = "/{sectionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createAssignment(
             @PathVariable Long sectionId,
-            @RequestParam MultipartFile file,
+            @RequestParam(required = false) MultipartFile file,
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate

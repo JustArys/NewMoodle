@@ -28,8 +28,21 @@ public class Subject {
     @Column(name = "name", nullable = false)
     private String name;
 
-    @OneToMany(cascade = CascadeType.ALL) // remove mappedBy
-    @JoinColumn(name = "subject_id") // add join column
-    private List<Section> section = new ArrayList<>();
+    @JsonIgnore
+    @OneToMany(mappedBy = "subject", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<Section> sections = new ArrayList<>();
 
+
+    public void addSection(Section section) {
+        if (section != null) {
+            this.sections.add(section);
+            section.setSubject(this);
+        }
+    }
+    public void removeSection(Section section) {
+        if (section != null) {
+            this.sections.remove(section);
+            section.setSubject(null); // Убираем обратную ссылку
+        }
+    }
 }
