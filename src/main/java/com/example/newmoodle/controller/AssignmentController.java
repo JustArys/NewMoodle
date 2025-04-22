@@ -1,4 +1,6 @@
 package com.example.newmoodle.controller;
+import com.example.newmoodle.model.Assignment;
+import com.example.newmoodle.model.User;
 import com.example.newmoodle.model.request.AssignmentDto;
 import com.example.newmoodle.service.AssignmentService;
 import com.example.newmoodle.service.UserService;
@@ -29,20 +31,34 @@ public class AssignmentController {
     @PostMapping(value = "/{sectionId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createAssignment(
             @PathVariable Long sectionId,
-            @RequestParam(required = false) MultipartFile file,
+            @RequestParam(required = false) MultipartFile file, // required = false позволяет не передавать файл
             @RequestParam String title,
             @RequestParam String description,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime dueDate
-    ) throws IOException {
-        AssignmentDto assignmentDto = AssignmentDto.builder()
-                .title(title)
-                .description(description)
-                .dueDate(dueDate)
-                .file(file)
-                .build();
-        return ResponseEntity.ok(assignmentService.createAssignment(assignmentDto, userService.getAuthenticatedUser(), sectionId));
-    }
+    ) {
+        try {
+            AssignmentDto assignmentDto = AssignmentDto.builder()
+                    .title(title)
+                    .description(description)
+                    .dueDate(dueDate)
+                    .file(file)
+                    .build();
 
+            User currentUser = userService.getAuthenticatedUser(); // Получаем текущего пользователя
+            Assignment createdAssignment = assignmentService.createAssignment(assignmentDto, currentUser, sectionId);
+            return ResponseEntity.ok(createdAssignment);
+        } catch (IOException e) {
+            // Обработка ошибки загрузки файла
+            System.err.println("Controller caught IOException: " + e.getMessage());
+            // Вернуть клиенту осмысленную ошибку
+            return ResponseEntity.status(500).body("Error processing file: " + e.getMessage());
+        } catch (Exception e) {
+            // Обработка других ошибок (например, секция не найдена, ошибка БД)
+            System.err.println("Controller caught Exception: " + e.getMessage());
+            // Вернуть клиенту осмысленную ошибку
+            return ResponseEntity.status(500).body("Error creating assignment: " + e.getMessage());
+        }
+    }
     @GetMapping("/{assignmentId}")
     public ResponseEntity<?> getAssignment(@PathVariable Long assignmentId){
         return ResponseEntity.ok(assignmentService.getAssignmentById(assignmentId));
@@ -61,9 +77,7 @@ public class AssignmentController {
                 return ResponseEntity.notFound().build();
             }
 
-            String contentType = "application/octet-stream"; // По умолчанию
-            // Можно добавить логику для определения Content-Type на основе расширения файла
-
+            String contentType = "application/octet-stream";
             return ResponseEntity.ok()
                     .contentType(MediaType.parseMediaType(contentType))
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + file.getFilename() + "\"")

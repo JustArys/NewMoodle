@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -69,6 +70,7 @@ public class UserService {
         return user.getRole().equals(role);
     }
 
+    @Transactional
     public void updateUserRole(Long id, Role role){
         User user = findUserById(id);
         user.setRole(role);
@@ -79,8 +81,16 @@ public class UserService {
         return userRepository.findAll();
     }
 
+    public List<User> getAllTeacher(){
+        return userRepository.findAllByRole(Role.TEACHER);
+    }
+
     public boolean existsByEmail(String email) {
         return userRepository.existsByEmail(email);
     }
 
+    @Transactional
+    public void deleteUserById(Long id) {
+        userRepository.deleteById(id);
+    }
 }

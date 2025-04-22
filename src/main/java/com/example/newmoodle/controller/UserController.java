@@ -38,4 +38,10 @@ public class UserController {
     public ResponseEntity<?> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
+
+    @DeleteMapping("/delete")
+    public ResponseEntity<?> deleteAccout(){
+        userService.deleteUserById(userService.getAuthenticatedUser().getId());
+        return ResponseEntity.ok("Account successfully deleted ");
+    }
 }

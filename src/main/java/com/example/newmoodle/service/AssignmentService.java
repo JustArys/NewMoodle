@@ -24,30 +24,42 @@ public class AssignmentService {
     private final FileService fileService;
 
     public Assignment createAssignment(AssignmentDto assignment, User teacher, Long sectionId) throws IOException {
-        try{String file = fileService.uploadFile(assignment.getFile());
-        var assignment1 = Assignment.builder()
-                .title(assignment.getTitle())
-                .dueDate(assignment.getDueDate())
-                .description(assignment.getDescription())
-                .teacher(teacher)
-                .filePath(file)
-                .section(sectionService.getSectionById(sectionId))
-                .build();
-        return assignmentRepository.save(assignment1);
+        String filePath = null;
+
+        try {
+            if (assignment.getFile() != null && !assignment.getFile().isEmpty()) {
+                try {
+                    filePath = fileService.uploadFile(assignment.getFile());
+                } catch (IOException e) {
+                    System.err.println("Error saving file during assignment creation: " + e.getMessage());
+                    // Пробрасываем исключение дальше
+                    throw new IOException("Failed to save attached file", e);
+                }
+            }
+
+            // Создаем сущность Assignment
+            var assignmentEntity = Assignment.builder()
+                    .title(assignment.getTitle())
+                    .dueDate(assignment.getDueDate())
+                    .description(assignment.getDescription())
+                    .teacher(teacher)
+                    .filePath(filePath) // Устанавливаем filePath (может быть null)
+                    .section(sectionService.getSectionById(sectionId)) // Убедитесь, что getSectionById обрабатывает случай, когда секция не найдена
+                    .build();
+
+            // Сохраняем сущность в репозиторий
+            return assignmentRepository.save(assignmentEntity);
+
         } catch (IOException e) {
-            // Логируем ошибку
-            System.err.println("Error saving file: " + e.getMessage());
-            // Пробрасываем исключение, чтобы контроллер мог его обработать
-            throw new IOException("Failed to save file", e);
+            // Этот блок поймает IOException, выброшенное при ошибке загрузки файла
+            throw e; // Просто пробрасываем дальше, чтобы контроллер обработал
         } catch (Exception e) {
-            // Логируем ошибку
+            // Логируем другие возможные ошибки (например, ошибка поиска секции, ошибка сохранения в БД)
             System.err.println("Error creating assignment: " + e.getMessage());
-            // Пробрасываем исключение, чтобы контроллер мог его обработать
+            // Пробрасываем как RuntimeException или создайте свое кастомное исключение
             throw new RuntimeException("Failed to create assignment", e);
         }
-
     }
-
     public Resource downloadFile(Long assignmentId) {
         Assignment assignment = getAssignmentById(assignmentId);
         return fileService.loadFileAsResource(assignment.getFilePath());
