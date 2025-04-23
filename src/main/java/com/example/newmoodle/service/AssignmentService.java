@@ -1,17 +1,21 @@
 package com.example.newmoodle.service;
 
 import com.example.newmoodle.model.Assignment;
+import com.example.newmoodle.model.Role;
 import com.example.newmoodle.model.Section;
 import com.example.newmoodle.model.User;
 import com.example.newmoodle.model.request.AssignmentDto;
 import com.example.newmoodle.model.response.ApiError;
 import com.example.newmoodle.repository.AssignmentRepository;
+import com.example.newmoodle.repository.SectionRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -22,6 +26,8 @@ public class AssignmentService {
     private final AssignmentRepository assignmentRepository;
     private final SectionService sectionService;
     private final FileService fileService;
+    private final UserService userService;
+    private final SectionRepository sectionRepository;
 
     public Assignment createAssignment(AssignmentDto assignment, User teacher, Long sectionId) throws IOException {
         String filePath = null;
@@ -77,5 +83,30 @@ public class AssignmentService {
     public void deleteAssignment(Long id){
         assignmentRepository.deleteById(id);
     }
-    
+
+    @Transactional(readOnly = true)
+    public List<Assignment> getAssignmentsForCurrentUserStudent() {
+        User currentUser = userService.getAuthenticatedUser();
+
+        // Убедимся, что пользователь - студент
+        if (!currentUser.getRole().equals(Role.STUDENT)) {
+            // Можно выбросить исключение или вернуть пустой список
+            // throw new IllegalStateException("User is not a student");
+            System.out.println("User " + currentUser.getEmail() + " is not a student. Returning empty assignment list."); // Логирование
+            return Collections.emptyList(); // Возвращаем пустой список, если не студент
+        }
+
+        // 1. Найти все секции, где пользователь является студентом
+        List<Section> studentSections = sectionRepository.findByStudentsContains(currentUser);
+
+        // 2. Если студент не состоит ни в одной секции, вернуть пустой список
+        if (studentSections.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 3. Найти все задания, связанные с этими секциями
+        List<Assignment> assignments = assignmentRepository.findBySectionIn(studentSections);
+
+        return assignments;
+    }
 }

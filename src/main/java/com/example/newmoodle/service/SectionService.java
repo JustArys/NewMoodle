@@ -131,4 +131,18 @@ public class SectionService {
     public Section getSectionById(Long id) {
         return findSectionByIdInternal(id);
     }
+
+    @Transactional(readOnly = true) // Используем readOnly, так как только читаем данные
+    public List<SectionDto> getSectionsByStudent(User student) {
+        if (student == null) {
+            throw new IllegalArgumentException("Student cannot be null");
+        }
+
+        List<Section> sections = sectionRepository.findByStudentsContains(student);
+        return sections.stream()
+                .map(this::mapSectionToDTO)
+                .collect(Collectors.toList());
+    }
+
+
 }

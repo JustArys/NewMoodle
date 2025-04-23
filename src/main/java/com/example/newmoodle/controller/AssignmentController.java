@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.Resource;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Validated
 @RestController
@@ -84,6 +86,18 @@ public class AssignmentController {
                     .body(file);
         } catch (Exception e) {
             return ResponseEntity.internalServerError().build();
+        }
+    }
+    @GetMapping("/my")
+    public ResponseEntity<List<Assignment>> getMyAssignments() {
+        try {
+            List<Assignment> assignments = assignmentService.getAssignmentsForCurrentUserStudent();
+            return ResponseEntity.ok(assignments);
+        } catch (IllegalStateException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        } catch (Exception e) {
+            System.err.println("Error fetching assignments for current user: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 }

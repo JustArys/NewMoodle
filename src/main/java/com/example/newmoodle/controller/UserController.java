@@ -1,6 +1,7 @@
 package com.example.newmoodle.controller;
 
 import com.example.newmoodle.model.Role;
+import com.example.newmoodle.service.SectionService;
 import com.example.newmoodle.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -13,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final UserService userService;
-
+    private SectionService sectionService;
 
     @GetMapping("/authenticated")
     public ResponseEntity<?> getAuthenticatedUserId() {
@@ -43,5 +44,10 @@ public class UserController {
     public ResponseEntity<?> deleteAccout(){
         userService.deleteUserById(userService.getAuthenticatedUser().getId());
         return ResponseEntity.ok("Account successfully deleted ");
+    }
+
+    @GetMapping("/sections")
+    public ResponseEntity<?> getAllSections() {
+        return ResponseEntity.ok(sectionService.getSectionsByStudent(userService.getAuthenticatedUser()));
     }
 }

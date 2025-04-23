@@ -1,7 +1,12 @@
 package com.example.newmoodle.repository;
 
 import com.example.newmoodle.model.Section;
+import com.example.newmoodle.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface SectionRepository extends JpaRepository<Section, Long> {
+import java.util.List;
+
+public interface
+SectionRepository extends JpaRepository<Section, Long> {
+    List<Section> findByStudentsContains(User student);
 }
