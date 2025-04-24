@@ -2,5 +2,6 @@ package com.example.newmoodle.model;
 
 public enum SubmissionStatus {
     PENDING,
-    REVIEWED
+    REVIEWED,
+    GRADED
 }

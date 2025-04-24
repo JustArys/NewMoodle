@@ -1,6 +1,7 @@
 package com.example.newmoodle.service;
 
 
+import com.example.newmoodle.dto.SubjectDto;
 import com.example.newmoodle.model.Role;
 import com.example.newmoodle.model.Section;
 import com.example.newmoodle.model.Subject;
@@ -37,23 +38,46 @@ public class SectionService {
                 .build();
     }
 
+    private SubjectDto mapSubjectToDTO(Subject subject) {
+        if (subject == null) {
+            return null;
+        }
+        // Assuming SubjectDto has a constructor like this (or use builder/setters)
+        // Also assuming SubjectDto fields are subjectId and name
+        return new SubjectDto(subject.getId(), subject.getName());
+    }
+
     private SectionDto mapSectionToDTO(Section section) {
         if (section == null) {
             return null;
         }
 
+        // Map students with null check for the collection itself
         Set<UserSummaryDto> studentSummaries = (section.getStudents() == null)
-                ? new HashSet<>()
+                ? new HashSet<>() // Return empty set if student collection is null
                 : section.getStudents().stream()
-                .map(this::mapUserToSummaryDTO)
+                .map(this::mapUserToSummaryDTO) // mapUserToSummaryDTO handles null users within the stream
                 .collect(Collectors.toSet());
 
+        // Map teacher (mapUserToSummaryDTO already handles null)
+        UserSummaryDto teacherSummary = mapUserToSummaryDTO(section.getTeacher());
+
+        // Map subject with null check before creating SubjectDto
+        SubjectDto subjectDto = null; // Initialize as null
+        Subject subject = section.getSubject();
+        if (subject != null) {
+            // Only create SubjectDto if the subject entity is not null
+            subjectDto = mapSubjectToDTO(subject); // Use the helper method which also has null check
+            // Or directly: subjectDto = new SubjectDto(subject.getId(), subject.getName());
+        }
+
+        // Build and return the SectionDto using the builder
         return SectionDto.builder()
-                .id(section.getId())
+                .id(section.getId()) // Assuming field name is sectionId
                 .name(section.getName())
-                .subjectId((section.getSubject() != null) ? section.getSubject().getId() : null)
-                .teacher(mapUserToSummaryDTO(section.getTeacher()))
-                .students(studentSummaries)
+                .subject(subjectDto) // Use the potentially null subjectDto
+                .teacher(teacherSummary) // Use the potentially null teacherSummary
+                .students(studentSummaries) // Use the (never null) set of student summaries
                 .build();
     }
 
