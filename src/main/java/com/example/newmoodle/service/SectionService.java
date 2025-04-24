@@ -2,19 +2,18 @@ package com.example.newmoodle.service;
 
 
 import com.example.newmoodle.dto.SubjectDto;
-import com.example.newmoodle.model.Role;
-import com.example.newmoodle.model.Section;
-import com.example.newmoodle.model.Subject;
-import com.example.newmoodle.model.User;
+import com.example.newmoodle.model.*;
 import com.example.newmoodle.model.request.CreateSection;
 import com.example.newmoodle.model.request.SectionDto;
 import com.example.newmoodle.model.request.UserSummaryDto;
+import com.example.newmoodle.repository.AssignmentRepository;
 import com.example.newmoodle.repository.SectionRepository;
 import com.example.newmoodle.repository.SubjectRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -27,6 +26,9 @@ public class SectionService {
     private final SectionRepository sectionRepository;
     private final UserService userService;
     private final SubjectRepository subjectRepository;
+    private final AssignmentRepository assignmentRepository;
+    private final FileService fileService;
+
 
     private UserSummaryDto mapUserToSummaryDTO(User user) {
         if (user == null) {
@@ -168,5 +170,31 @@ public class SectionService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void deleteSection(Long id) {
+        Section section = findSectionByIdInternal(id); // Находим секцию или получаем ошибку
+
+        // Находим все связанные задания (полные сущности)
+        List<Assignment> assignmentsToDelete = assignmentRepository.findBySection(section);
+
+        // Удаляем связанные задания и их файлы *напрямую*
+        for (Assignment assignment : assignmentsToDelete) {
+            // 1. Удаляем файл задания (если есть)
+            if (assignment.getFilePath() != null && !assignment.getFilePath().isEmpty()) {
+                // Используем FileService, внедренный в SectionService
+                fileService.deleteFile(assignment.getFilePath());
+            }
+
+            // 2. *Опционально*: Удаляем связанные Submissions (потребуется SubmissionRepository)
+            // submissionRepository.deleteByAssignment(assignment); // Нужен метод deleteByAssignment
+
+            // 3. Удаляем сущность задания
+            // Используем AssignmentRepository, внедренный в SectionService
+            assignmentRepository.delete(assignment);
+        }
+
+        // Удаляем саму секцию (связи с User и Subject очистятся автоматически)
+        sectionRepository.delete(section);
+    }
 
 }

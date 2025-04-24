@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/api/v1/section")
@@ -45,5 +46,19 @@ public class SectionController {
     public ResponseEntity<SectionDto> setStudent(@PathVariable Long sectionId, @RequestParam Long userId) {
         SectionDto updatedSection = sectionService.setStudent(userId, sectionId);
         return ResponseEntity.ok(updatedSection);
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSection(@PathVariable Long id) {
+        try {
+            sectionService.deleteSection(id);
+            return ResponseEntity.noContent().build(); // 204 No Content
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build(); // 404 Not Found
+        } catch (Exception e) {
+            // Логирование ошибки e (например, при удалении связанных заданий)
+            System.err.println("Error deleting section " + id + ": " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
     }
 }

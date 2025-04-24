@@ -80,10 +80,14 @@ public class AssignmentService {
         return assignmentRepository.findBySection(section);
     }
 
-    public void deleteAssignment(Long id){
-        assignmentRepository.deleteById(id);
-    }
+    @Transactional
+    public void deleteAssignment(Long id) {
+        Assignment assignment = getAssignmentById(id); // Находим или получаем ошибку
 
+        if (assignment.getFilePath() != null && !assignment.getFilePath().isEmpty()) {
+            fileService.deleteFile(assignment.getFilePath());
+        }
+    }
     @Transactional(readOnly = true)
     public List<Assignment> getAssignmentsForCurrentUserStudent() {
         User currentUser = userService.getAuthenticatedUser();

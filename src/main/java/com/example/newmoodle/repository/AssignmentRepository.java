@@ -9,4 +9,6 @@ import java.util.List;
 public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     List<Assignment> findBySection(Section section);
     List<Assignment> findBySectionIn(List<Section> sections);
+
+    List<Long> findIdsBySection(Section section);
 }

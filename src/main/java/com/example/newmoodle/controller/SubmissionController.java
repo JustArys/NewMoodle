@@ -1,15 +1,21 @@
 package com.example.newmoodle.controller;
 
+import com.example.newmoodle.dto.SubmissionDto;
 import com.example.newmoodle.model.Submission;
+import com.example.newmoodle.model.User;
 import com.example.newmoodle.service.SubmissionService;
 import com.example.newmoodle.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/submission")
@@ -34,4 +40,34 @@ public class SubmissionController {
         submissionService.deleteSubmission(id, userService.getAuthenticatedUser());
         return ResponseEntity.ok("Deleted successfully");
     }
+
+    @GetMapping("/assignments/{assignmentId}/submissions")
+    public ResponseEntity<List<Submission>> getSubmissionsForAssignment(
+            @PathVariable Long assignmentId) {
+        try {
+            List<Submission> submissions = submissionService.getSubmissionsByAssignmentId(assignmentId);
+            return ResponseEntity.ok(submissions);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PatchMapping("/submissions/{submissionId}/grade")
+    public ResponseEntity<?> gradeSubmission(
+            @PathVariable Long submissionId,
+            @Valid @RequestBody Integer gradeRequest
+    ) {
+        User currentUser = userService.getAuthenticatedUser();
+        if (currentUser == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+        }
+        try {
+            SubmissionDto gradedSubmission = submissionService.gradeSubmission(submissionId, gradeRequest, currentUser);
+            return ResponseEntity.ok(gradedSubmission);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(null);
+        }
+    }
+
+
 }

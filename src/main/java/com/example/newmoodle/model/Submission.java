@@ -34,8 +34,8 @@ public class Submission {
     private String fileUrl;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column()
     private SubmissionStatus status;
 
-
+    private Integer grade;
 }
