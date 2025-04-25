@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Table(name = "assignment")
@@ -46,4 +47,15 @@ public class Assignment {
 
     @Column(name = "file_path")
     private String filePath;
+
+    @JsonIgnore
+    @OneToMany(
+            mappedBy = "assignment", // Указывает на поле 'assignment' в сущности Submission
+            cascade = CascadeType.REMOVE, // <-- ДОБАВИТЬ ЭТО
+            orphanRemoval = true          // <-- ДОБАВИТЬ ЭТО (Важно для согласованности при удалении из коллекции)
+            // fetch = FetchType.LAZY // Обычно LAZY по умолчанию для OneToMany
+    )
+    private List<Submission> submissions;
+
+
 }

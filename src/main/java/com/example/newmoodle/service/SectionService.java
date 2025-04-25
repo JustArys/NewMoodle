@@ -174,26 +174,19 @@ public class SectionService {
     public void deleteSection(Long id) {
         Section section = findSectionByIdInternal(id); // Находим секцию или получаем ошибку
 
-        // Находим все связанные задания (полные сущности)
         List<Assignment> assignmentsToDelete = assignmentRepository.findBySection(section);
 
         // Удаляем связанные задания и их файлы *напрямую*
         for (Assignment assignment : assignmentsToDelete) {
+            assignmentRepository.delete(assignment);
             // 1. Удаляем файл задания (если есть)
             if (assignment.getFilePath() != null && !assignment.getFilePath().isEmpty()) {
                 // Используем FileService, внедренный в SectionService
                 fileService.deleteFile(assignment.getFilePath());
             }
 
-            // 2. *Опционально*: Удаляем связанные Submissions (потребуется SubmissionRepository)
-            // submissionRepository.deleteByAssignment(assignment); // Нужен метод deleteByAssignment
-
-            // 3. Удаляем сущность задания
-            // Используем AssignmentRepository, внедренный в SectionService
             assignmentRepository.delete(assignment);
         }
-
-        // Удаляем саму секцию (связи с User и Subject очистятся автоматически)
         sectionRepository.delete(section);
     }
 

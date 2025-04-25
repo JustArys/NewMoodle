@@ -90,6 +90,7 @@ public class AssignmentService {
         if (assignment.getFilePath() != null && !assignment.getFilePath().isEmpty()) {
             fileService.deleteFile(assignment.getFilePath());
         }
+        assignmentRepository.delete(assignment);
     }
     @Transactional(readOnly = true) // Важно для ленивой загрузки внутри мапперов
     public List<AssignmentsDto> getAssignmentsForCurrentUserStudent() {

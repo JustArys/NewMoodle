@@ -8,6 +8,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Entity
 @Table(name = "submission")
 @AllArgsConstructor
@@ -25,6 +27,13 @@ public class Submission {
     @JoinColumn(name = "assignment_id", nullable = false)
     private Assignment assignment;
 
+    @JsonIgnore
+    @OneToOne(
+            mappedBy = "submission", // Поле 'submission' в сущности Feedback
+            cascade = CascadeType.REMOVE, // <-- ДОБАВИТЬ
+            orphanRemoval = true          // <-- ДОБАВИТЬ
+    )
+    private Feedback feedbacks;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
