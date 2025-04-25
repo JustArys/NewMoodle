@@ -64,7 +64,7 @@ public class AssignmentController {
     }
     @GetMapping("/{assignmentId}")
     public ResponseEntity<?> getAssignment(@PathVariable Long assignmentId){
-        return ResponseEntity.ok(assignmentService.getAssignmentById(assignmentId));
+        return ResponseEntity.ok(assignmentService.mapToAssignmentDto(assignmentService.getAssignmentById(assignmentId)));
     }
 
     @GetMapping("/section/{sectionId}")

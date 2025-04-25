@@ -78,10 +78,14 @@ public class AssignmentService {
         return assignmentRepository.findById(id).orElseThrow(()
                 -> new NoSuchElementException(String.format("Assignment with id '%d' not found", id)));
     }
-    public List<Assignment> getAssignmentsBySectionId(Long sectionId) {
+    public List<AssignmentsDto> getAssignmentsBySectionId(Long sectionId) {
         Section section = sectionService.getSectionById(sectionId);
-        return assignmentRepository.findBySection(section);
-    }
+
+        List<Assignment> assignments = assignmentRepository.findBySection(section);
+
+        return assignments.stream()
+                .map(this::mapToAssignmentDto)
+                .collect(Collectors.toList());    }
 
     @Transactional
     public void deleteAssignment(Long id) {
