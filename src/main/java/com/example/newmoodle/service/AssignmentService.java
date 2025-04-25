@@ -1,10 +1,11 @@
 package com.example.newmoodle.service;
 
-import com.example.newmoodle.model.Assignment;
-import com.example.newmoodle.model.Role;
-import com.example.newmoodle.model.Section;
-import com.example.newmoodle.model.User;
+import com.example.newmoodle.dto.AssignmentsDto;
+import com.example.newmoodle.dto.SubjectDto;
+import com.example.newmoodle.model.*;
 import com.example.newmoodle.model.request.AssignmentDto;
+import com.example.newmoodle.model.request.SectionDto;
+import com.example.newmoodle.model.request.UserSummaryDto;
 import com.example.newmoodle.model.response.ApiError;
 import com.example.newmoodle.repository.AssignmentRepository;
 import com.example.newmoodle.repository.SectionRepository;
@@ -18,6 +19,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -88,29 +91,76 @@ public class AssignmentService {
             fileService.deleteFile(assignment.getFilePath());
         }
     }
-    @Transactional(readOnly = true)
-    public List<Assignment> getAssignmentsForCurrentUserStudent() {
+    @Transactional(readOnly = true) // Важно для ленивой загрузки внутри мапперов
+    public List<AssignmentsDto> getAssignmentsForCurrentUserStudent() {
         User currentUser = userService.getAuthenticatedUser();
 
-        // Убедимся, что пользователь - студент
-        if (!currentUser.getRole().equals(Role.STUDENT)) {
-            // Можно выбросить исключение или вернуть пустой список
-            // throw new IllegalStateException("User is not a student");
-            System.out.println("User " + currentUser.getEmail() + " is not a student. Returning empty assignment list."); // Логирование
-            return Collections.emptyList(); // Возвращаем пустой список, если не студент
+        if (currentUser == null || !Role.STUDENT.equals(currentUser.getRole())) {
+            System.out.println("User is not authenticated or not a student. Returning empty assignment list.");
+            return Collections.emptyList();
         }
 
-        // 1. Найти все секции, где пользователь является студентом
+        // Используем ваш метод или JPQL запрос
         List<Section> studentSections = sectionRepository.findByStudentsContains(currentUser);
+        // List<Section> studentSections = sectionRepository.findByStudentsContains(currentUser);
 
-        // 2. Если студент не состоит ни в одной секции, вернуть пустой список
         if (studentSections.isEmpty()) {
             return Collections.emptyList();
         }
 
-        // 3. Найти все задания, связанные с этими секциями
-        List<Assignment> assignments = assignmentRepository.findBySectionIn(studentSections);
+        List<Assignment> assignments = assignmentRepository.findBySectionInOrderByDueDateAsc(studentSections);
 
-        return assignments;
+        // Преобразуем в DTO, используя обновленные мапперы
+        return assignments.stream()
+                .map(this::mapToAssignmentDto)
+                .collect(Collectors.toList());
     }
+    public AssignmentsDto mapToAssignmentDto(Assignment assignment) {
+        if (assignment == null) return null;
+        return AssignmentsDto.builder()
+                .id(assignment.getId())
+                .title(assignment.getTitle())
+                .description(assignment.getDescription())
+                .dueDate(assignment.getDueDate())
+                .filePath(assignment.getFilePath()) // Может требовать обработки FileService
+                .section(mapToSectionDto(assignment.getSection())) // Используем маппер для полного SectionDto
+                .teacher(mapToUserSummaryDto(assignment.getTeacher()))
+                .build();
+    }
+
+    // Маппер для Section -> SectionDto (более сложный)
+    private SectionDto mapToSectionDto(Section section) {
+        if (section == null) return null;
+
+        // Маппинг списка студентов (требует загрузки коллекции section.getStudents())
+        // ОСТОРОЖНО: Может вызвать N+1 запросы, если студенты не загружены заранее!
+        Set<UserSummaryDto> studentSummaries = section.getStudents().stream()
+                .map(this::mapToUserSummaryDto)
+                .collect(Collectors.toSet());
+
+        return SectionDto.builder()
+                .id(section.getId())
+                .name(section.getName())
+                .subject(mapToSubjectDto(section.getSubject())) // Требует загрузки section.getSubject()
+                .teacher(mapToUserSummaryDto(section.getTeacher())) // Требует загрузки section.getTeacher()
+                .students(studentSummaries) // Включаем список студентов
+                .build();
+    }
+
+    // Маппер для User -> UserSummaryDto
+    private UserSummaryDto mapToUserSummaryDto(User user) {
+        if (user == null) return null;
+        return UserSummaryDto.builder()
+                .id(user.getId())
+                .fullName(user.getFullName()) // Убедитесь, что метод getFullName() существует
+                .build();
+    }
+
+    // Маппер для Subject -> SubjectDto
+    private SubjectDto mapToSubjectDto(Subject subject) {
+        if (subject == null) return null;
+        // Убедитесь, что у Subject есть getId() и getName()
+        return new SubjectDto(subject.getId(), subject.getName());
+    }
+
 }

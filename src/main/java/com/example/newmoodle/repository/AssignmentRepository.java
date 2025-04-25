@@ -11,4 +11,6 @@ public interface AssignmentRepository extends JpaRepository<Assignment, Long> {
     List<Assignment> findBySectionIn(List<Section> sections);
 
     List<Long> findIdsBySection(Section section);
+
+    List<Assignment> findBySectionInOrderByDueDateAsc(List<Section> studentSections);
 }

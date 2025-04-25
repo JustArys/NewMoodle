@@ -13,6 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -47,9 +48,17 @@ public class SubmissionService {
                 .orElseThrow(() -> new IllegalArgumentException("Submission with id " + id + " not found"));
     }
 
-    public List<Submission> getSubmissionsByAssignmentId(Long assignmentId) {
+    public List<SubmissionDto> getSubmissionsByAssignmentId(Long assignmentId) {
         assignmentService.getAssignmentById(assignmentId);
-        return submissionRepository.findByAssignmentId(assignmentId);
+
+        List<Submission> submissions = submissionRepository.findByAssignmentId(assignmentId);
+
+        List<SubmissionDto> submissionDtos = submissions.stream()
+                .map(this::mapToSubmissionDto)
+                .collect(Collectors.toList());
+
+        // 4. Возвращаем список DTO
+        return submissionDtos;
     }
 
     public void updateSubmission(Submission submission) {
@@ -107,7 +116,7 @@ public class SubmissionService {
                 .build();
     }
 
-    private SubmissionDto mapToSubmissionDto(Submission submission) {
+    public SubmissionDto mapToSubmissionDto(Submission submission) {
         if (submission == null) return null;
         return SubmissionDto.builder()
                 .id(submission.getId())

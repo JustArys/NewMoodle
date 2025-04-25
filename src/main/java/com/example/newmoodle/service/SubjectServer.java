@@ -45,12 +45,8 @@ public class SubjectServer {
 
     @Transactional
     public void deleteSubject(Long id) {
-        // 1. Найти Subject или выбросить исключение
         Subject subject = getSubjectById(id);
 
-        // 2. Получить ID всех связанных секций
-        // Важно скопировать ID в новый список, так как удаление секции может модифицировать
-        // оригинальную коллекцию subject.getSections() во время итерации, если она используется напрямую.
         List<Long> sectionIdsToDelete = subject.getSections() // Получаем связанные секции
                 .stream()
                 .map(Section::getId) // Извлекаем их ID

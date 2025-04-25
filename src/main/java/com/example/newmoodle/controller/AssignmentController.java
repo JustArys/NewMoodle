@@ -90,10 +90,9 @@ public class AssignmentController {
         }
     }
     @GetMapping("/my")
-    public ResponseEntity<List<Assignment>> getMyAssignments() {
+    public ResponseEntity<?> getMyAssignments() {
         try {
-            List<Assignment> assignments = assignmentService.getAssignmentsForCurrentUserStudent();
-            return ResponseEntity.ok(assignments);
+            return ResponseEntity.ok(assignmentService.getAssignmentsForCurrentUserStudent());
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
         } catch (Exception e) {

@@ -27,7 +27,7 @@ public class SubmissionController {
 
     @GetMapping("/{id}")
     public ResponseEntity<?> getSubmission(@PathVariable Long id) {
-        return ResponseEntity.ok(submissionService.getSubmissionById(id));
+        return ResponseEntity.ok(submissionService.mapToSubmissionDto(submissionService.getSubmissionById(id)));
     }
 
     @PostMapping(path = "/{sectionId}/{assignmentId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -42,11 +42,10 @@ public class SubmissionController {
     }
 
     @GetMapping("/assignments/{assignmentId}/submissions")
-    public ResponseEntity<List<Submission>> getSubmissionsForAssignment(
+    public ResponseEntity<?> getSubmissionsForAssignment(
             @PathVariable Long assignmentId) {
         try {
-            List<Submission> submissions = submissionService.getSubmissionsByAssignmentId(assignmentId);
-            return ResponseEntity.ok(submissions);
+            return ResponseEntity.ok(submissionService.getSubmissionsByAssignmentId(assignmentId));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
         }
